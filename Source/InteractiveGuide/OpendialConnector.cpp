@@ -60,6 +60,7 @@ void UOpendialConnector::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Data Bytes Read ~> %d"), ReceivedData.Num()));
 	Message = StringFromBinaryArray(ReceivedData);
+	IncomingMessage.Broadcast();
 }
 
 FString UOpendialConnector::StringFromBinaryArray(const TArray<uint8>& BinaryArray)

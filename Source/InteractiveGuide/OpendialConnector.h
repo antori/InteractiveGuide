@@ -7,6 +7,7 @@
 #include <string>
 #include "OpendialConnector.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOpendialEvent);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class INTERACTIVEGUIDE_API UOpendialConnector : public UActorComponent
@@ -16,8 +17,8 @@ class INTERACTIVEGUIDE_API UOpendialConnector : public UActorComponent
 public:	
 	FSocket* OpendialSocket;
 
-	//UPROPERTY(Category = Opendial, EditAnywhere, BlueprintReadWrite) FString Action;
 	UPROPERTY(Category = Opendial, EditAnywhere, BlueprintReadWrite) FString Message;
+	UPROPERTY(Category = Opendial, EditAnywhere, BlueprintReadWrite) int32 port;
 
 	// Sets default values for this component's properties
 	UOpendialConnector();
@@ -29,4 +30,7 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	FString StringFromBinaryArray(const TArray<uint8>& BinaryArray);
+
+	UPROPERTY(BlueprintAssignable, Category = "Interaction")
+		FOpendialEvent IncomingMessage;
 };
