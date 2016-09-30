@@ -6,7 +6,7 @@ public class InteractiveGuide : ModuleRules
 {
 	public InteractiveGuide(TargetInfo Target)
 	{
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "Networking", "Sockets", "HTTP" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
