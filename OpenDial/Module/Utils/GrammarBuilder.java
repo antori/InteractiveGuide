@@ -10,9 +10,9 @@ public abstract class GrammarBuilder {
 	
 	public abstract void parseModel();
 	
-	public abstract void parseRules();
+	public abstract void buildObject();
 	
-	public abstract void parseEffects();
+	public abstract void buildFile();
 	
 	
 }

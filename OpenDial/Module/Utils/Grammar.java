@@ -2,16 +2,25 @@ package opendial.modules.utils;
 
 public class Grammar {
 
-	private String fileName;
+	private String domainFileName;
+	private String path;
 	
-	public Grammar(String fileName){ this.setFileName(fileName); }
+	public Grammar(String fileName){ this.setDomainFileName(fileName); }
 
-	public String getFileName() {
-		return fileName;
+	public String getDomainFileName() {
+		return this.domainFileName;
 	}
 
-	public void setFileName(String fileName) {
-		this.fileName = fileName;
+	public void setDomainFileName(String fileName) {
+		this.domainFileName = fileName;
+	}
+
+	public String getPath() {
+		return path;
+	}
+
+	public void setPath(String path) {
+		this.path = path;
 	}
 	
 	

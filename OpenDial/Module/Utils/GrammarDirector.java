@@ -12,8 +12,8 @@ public class GrammarDirector {
 		
 		builder.createNewGrammar(fileName);
 		builder.parseModel();
-		builder.parseRules();
-		builder.parseEffects();
+		builder.buildObject();
+		builder.buildFile();
 		
 	}
 	

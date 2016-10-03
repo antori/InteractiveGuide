@@ -62,7 +62,6 @@ public class GrxmlModule implements Module {
 	@Override
 	public void trigger(DialogueState state, Collection<String> updatedVars) {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
