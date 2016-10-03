@@ -7,6 +7,7 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
+import javax.sql.rowset.spi.TransactionalWriter;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -29,6 +30,10 @@ public class GrxmlBuilder extends GrammarBuilder {
 	private ArrayList<Node> modelNodes = new ArrayList<Node>();
 	private ArrayList<Node> modelGrammarNodes = new ArrayList<Node>();
 	private ArrayList<Node> modelEffectNodes = new ArrayList<Node>();
+	private boolean modelCheck = true;
+	private boolean modelParsed = false;
+	private String msg = "[GrxmlModule] Error in xml syntact!";
+	private String msg1 = "[GrxmlModule] Module not arledy parsed!";
 
 	@Override
 	public void parseModel() {	
@@ -61,28 +66,47 @@ public class GrxmlBuilder extends GrammarBuilder {
 					
 					for (int j = 0; j < cases.getLength(); j++) {						
 				     	NodeList caseChilds = cases.item(j).getChildNodes();
-						int grammarCount = 0;
+						boolean checkGrammar = false;
+						boolean checkEffect = false;
 
 						for (int k = 0; k < caseChilds.getLength(); k++) {						
 							
-							if(caseChilds.item(k).getNodeName().equals("grammar") && grammarCount == 0){	
-								modelGrammarNodes.add(caseChilds.item(k));
-								grammarCount ++;
+							if(caseChilds.item(k).getNodeName().equals("grammar")){
+								//non ho trovato ne grammatica ne effetto
+								if(!checkGrammar && !checkEffect){
+									modelGrammarNodes.add(caseChilds.item(k));
+								}else{
+								//ho trovato gia' una grammatica o un effetto 
+									modelCheck = false;
+									throw new RuntimeException(msg);
+								}
+								checkGrammar = true;
 								
-							} else if(caseChilds.item(k).getNodeName().equals("effect") && grammarCount == 1){
-								modelEffectNodes.add(caseChilds.item(k));
-								grammarCount --;
+							} else if(caseChilds.item(k).getNodeName().equals("effect")){
+								if(!checkEffect && checkGrammar){ 
+									//ho trovato una grammatica precedente ma non ancora un effetto
+									modelEffectNodes.add(caseChilds.item(k));
+									
+								}else if(checkGrammar){
+									//ho trovato una grammatica precedente e un effetto
+									modelCheck = false;
+									throw new RuntimeException(msg);
+								}
+								checkEffect = true;
 							}
-						}		
+						}	
 						
-						if(grammarCount!=0){
-							System.out.println("GrxmlModule: Error in xml syntact. You must define an effect for each grammar");
+						if(checkGrammar && !checkEffect){
+							//grammatica deve implicare effetto
+							modelCheck = false;
+							throw new RuntimeException(msg);
 						}
 					}
 				}
-	    	}
-	    	
-	    }	
+	    	}	
+	    }
+	    
+	    modelParsed = true;
 	}
 	
 	@Override
@@ -92,15 +116,21 @@ public class GrxmlBuilder extends GrammarBuilder {
 
 	@Override
 	public void buildFile() {
+		
+		if(!modelParsed)
+			throw new RuntimeException(msg1);
+		
 		System.out.println("[GrxmlBuilder] Building grammar file...");
 		
-		if(!modelGrammarNodes.isEmpty() && !modelEffectNodes.isEmpty()){    		
+		if(modelCheck && !modelGrammarNodes.isEmpty() && !modelEffectNodes.isEmpty()){    		
 		    Document grammar = XMLUtils.newXMLDocument();
 		    Element root = grammar.createElement("grammar");
+		    Element firstRule = grammar.createElement("rule");
+		    Element firstOneOf = grammar.createElement("one-of");
 		    
 		    for( int i = 0; i < modelGrammarNodes.size(); i++){	 
 		    	System.out.println("[GrxmlBuilder] Parsing grammar node");
-		    	
+			   
 		    	Node grammarNode = modelGrammarNodes.get(i);
 		    	Node effectNode = modelEffectNodes.get(i);		    	
 		    	
@@ -111,11 +141,14 @@ public class GrxmlBuilder extends GrammarBuilder {
 		    		
 		    		if(ruleNodes.item(j).getNodeName().equals("rule")){
 			    		System.out.println("[GrxmlBuilder] Parsing rule node");
+			    		
+			    		Element item = grammar.createElement("item");
 			    		Node ruleNode = ruleNodes.item(j);  
 					    // Create a duplicate node
 					    Node newNode = ruleNode.cloneNode(true);
 					    // Transfer ownership of the new node into the destination document
 					    grammar.adoptNode(newNode);	    
+			    		item.appendChild(newNode);
 			    		
 			    		for(int z = 0; z < setNodes.getLength(); z++){
 			    			
@@ -125,21 +158,18 @@ public class GrxmlBuilder extends GrammarBuilder {
 					    	String var = setNodes.item(z).getAttributes().getNamedItem("var").getNodeValue();
 			    			String value = setNodes.item(z).getAttributes().getNamedItem("value").getNodeValue();
 			    			
-			    			Element tagVar = grammar.createElement("tag"); 
-			    			Element tagValue = grammar.createElement("tag");		    			
-			    			
-			    			tagVar.appendChild(grammar.createTextNode("out.Var = \""+var+"\";"));
-			    			tagValue.appendChild(grammar.createTextNode("out.Value = \""+value+"\";"));			    					    			   
+			    			Element tag = grammar.createElement("tag"); 	    						    			
+			    			tag.appendChild(grammar.createTextNode("out."+var+" = \""+value+"\";"));		    					    			   
 							
-			    			newNode.appendChild(tagVar);
-							newNode.appendChild(tagValue);			    		    	
+			    			item.appendChild(tag);		    		    	
 			    		    }
 			    		}
-			    		root.appendChild(newNode);
-		    		}
-		    		
+				    	firstOneOf.appendChild(item);
+		    		}    		
 		    	}
 		    }    
+		    firstRule.appendChild(firstOneOf);
+		    root.appendChild(firstRule);
 	    	grammar.appendChild(root);
 			
 	    	try {	
@@ -172,8 +202,6 @@ public class GrxmlBuilder extends GrammarBuilder {
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}
-    	}
-		
+    	}		
 	}
-
 }
