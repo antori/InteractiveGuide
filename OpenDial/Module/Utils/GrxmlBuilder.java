@@ -24,7 +24,7 @@ import org.w3c.dom.NodeList;
 import opendial.utils.XMLUtils;
 
 public class GrxmlBuilder extends GrammarBuilder {
-	
+
 	private Node rootNode;
 	private Document domainDoc;
 	private ArrayList<Node> modelNodes = new ArrayList<Node>();
@@ -32,176 +32,198 @@ public class GrxmlBuilder extends GrammarBuilder {
 	private ArrayList<Node> modelEffectNodes = new ArrayList<Node>();
 	private boolean modelCheck = true;
 	private boolean modelParsed = false;
-	private String msg = "[GrxmlModule] Error in xml syntact!";
-	private String msg1 = "[GrxmlModule] Module not arledy parsed!";
+	private final static String msg = "[GrxmlModule] Error in xml syntax!";
+	private final static String msg1 = "[GrxmlModule] Can not create object!";
+	private final static String msg2 = "[GrxmlModule] Can not create file!";
+	private Document grammarDoc;
+	private DOMSource grammarSource;
 
 	@Override
-	public void parseModel() {	
-		System.out.println("[GrxmlBuilder]Parsing model...");
+	public void parseModel() {
 		
+		System.out.println("[GrxmlBuilder]Parsing model...");
+		// parse xml domain
 		domainDoc = XMLUtils.getXMLDocument(super.grammar.getDomainFileName());
-	    rootNode = XMLUtils.getMainNode(domainDoc);
-	    NodeList childs = rootNode.getChildNodes();
-	    
-	    //searching for models have trigger equals to "u_u"
-	    for(int i=0; i<childs.getLength(); i++){	    	
-	    	Node child = childs.item(i);
-	    
-	    	if(child.getNodeName().equals("model") 
-	    		&& child.getAttributes().getNamedItem("trigger").getNodeValue().equals("u_u")){	    		
-	    		modelNodes.add(child);
-	    	}
-	    }
-	    //checking for found models
-	    if(modelNodes.isEmpty()){
-	    	System.out.println("GrxmlModule: No models have trigger equals to u_u");
-	    	
-	    }else{
-	    	
-	    	for (Node node : modelNodes) {    		
+		rootNode = XMLUtils.getMainNode(domainDoc);
+		NodeList childs = rootNode.getChildNodes();
+		// searching for models have trigger equals to "u_u"
+		for (int i = 0; i < childs.getLength(); i++) {
+			Node child = childs.item(i);
+			// model trigger = "u_u"
+			if (child.getNodeName().equals("model")
+					&& child.getAttributes().getNamedItem("trigger").getNodeValue().equals("u_u")) {
+				modelNodes.add(child);
+			}
+		}
+		// checking for found models
+		if (modelNodes.isEmpty()) {
+			System.out.println("GrxmlModule: No models have trigger equals to u_u");
+
+		} else {
+			// for each node in the model
+			for (Node node : modelNodes) {
 				NodeList rules = node.getChildNodes();
-				
-				for (int i = 0; i < rules.getLength(); i++) {				
+				// for each rules in the model
+				for (int i = 0; i < rules.getLength(); i++) {
 					NodeList cases = rules.item(i).getChildNodes();
-					
-					for (int j = 0; j < cases.getLength(); j++) {						
-				     	NodeList caseChilds = cases.item(j).getChildNodes();
+					// for each cases in the model
+					for (int j = 0; j < cases.getLength(); j++) {
+						NodeList caseChilds = cases.item(j).getChildNodes();
 						boolean checkGrammar = false;
 						boolean checkEffect = false;
-
-						for (int k = 0; k < caseChilds.getLength(); k++) {						
-							
-							if(caseChilds.item(k).getNodeName().equals("grammar")){
-								//non ho trovato ne grammatica ne effetto
-								if(!checkGrammar && !checkEffect){
+						// for each case childs in the model
+						for (int k = 0; k < caseChilds.getLength(); k++) {
+							// parsing grammar node
+							if (caseChilds.item(k).getNodeName().equals("grammar")) {
+								// checking if the grammar is unique
+								if (!checkGrammar && !checkEffect) {
 									modelGrammarNodes.add(caseChilds.item(k));
-								}else{
-								//ho trovato gia' una grammatica o un effetto 
+									NodeList ruleNodes = caseChilds.item(k).getChildNodes();
+									boolean checkRule = false;
+									// checking if the grammar contains only one
+									// root rule
+									for (int z = 0; z < ruleNodes.getLength(); z++) {
+
+										if (ruleNodes.item(z).getNodeName().equals("rule")) {
+
+											if (!checkRule)
+												checkRule = true;
+											else {
+												// model contains syntax error
+												modelCheck = false;
+												throw new RuntimeException(msg);
+											}
+										}
+									}
+								} else {
+									// model contains syntax error
 									modelCheck = false;
 									throw new RuntimeException(msg);
 								}
 								checkGrammar = true;
-								
-							} else if(caseChilds.item(k).getNodeName().equals("effect")){
-								if(!checkEffect && checkGrammar){ 
-									//ho trovato una grammatica precedente ma non ancora un effetto
+								// checking for effects
+							} else if (caseChilds.item(k).getNodeName().equals("effect")) {
+								if (!checkEffect && checkGrammar) {
 									modelEffectNodes.add(caseChilds.item(k));
-									
-								}else if(checkGrammar){
-									//ho trovato una grammatica precedente e un effetto
+
+								} else if (checkGrammar) {
+									// model contains syntax error
 									modelCheck = false;
 									throw new RuntimeException(msg);
 								}
 								checkEffect = true;
 							}
-						}	
-						
-						if(checkGrammar && !checkEffect){
-							//grammatica deve implicare effetto
+						}
+						if (checkGrammar && !checkEffect) {
+							// checkGrammar should implies checkEffect
 							modelCheck = false;
 							throw new RuntimeException(msg);
 						}
 					}
 				}
-	    	}	
-	    }
-	    
-	    modelParsed = true;
+			}
+		}
+		modelParsed = true;
 	}
-	
+
 	@Override
-	public void buildObject(){
+	public void buildObject() {
+
+		if (!modelParsed || !modelCheck)
+			throw new RuntimeException(msg1);
+
 		System.out.println("[GrxmlBuilder] Building grammar object...");
+
+		if (!modelGrammarNodes.isEmpty() && !modelEffectNodes.isEmpty()) {
+			grammarDoc = XMLUtils.newXMLDocument();
+			Element root = grammarDoc.createElement("grammar");
+			Element firstRule = grammarDoc.createElement("rule");
+			Element firstOneOf = grammarDoc.createElement("one-of");
+
+			for (int i = 0; i < modelGrammarNodes.size(); i++) {
+				System.out.println("[GrxmlBuilder] Building grammar node");
+
+				Node grammarNode = modelGrammarNodes.get(i);
+				Node effectNode = modelEffectNodes.get(i);
+
+				NodeList ruleNodes = grammarNode.getChildNodes();
+				NodeList setNodes = effectNode.getChildNodes();
+
+				Element item = grammarDoc.createElement("item");
+
+				for (int j = 0; j < ruleNodes.getLength(); j++) {
+
+					// Just one rule for grammar
+					if (ruleNodes.item(j).getNodeName().equals("rule")) {
+						System.out.println("[GrxmlBuilder] Building rule node");
+
+						Node ruleNode = ruleNodes.item(j);
+						// Create a duplicate node
+						Node newNode = ruleNode.cloneNode(true);
+						// Transfer ownership of the new node into the
+						// destination document
+						grammarDoc.adoptNode(newNode);
+						item.appendChild(newNode);
+						break;
+
+					}
+				}
+
+				for (int z = 0; z < setNodes.getLength(); z++) {
+
+					if (setNodes.item(z).getNodeName().equals("set")) {
+						System.out.println("[GrxmlBuilder] Building effect node");
+						String var = setNodes.item(z).getAttributes().getNamedItem("var").getNodeValue();
+						String value = setNodes.item(z).getAttributes().getNamedItem("value").getNodeValue();
+						Element tag = grammarDoc.createElement("tag");
+
+						tag.appendChild(grammarDoc.createTextNode("out." + var + " = \"" + value + "\";"));
+						item.appendChild(tag);
+					}
+				}
+
+				firstOneOf.appendChild(item);
+			}
+
+			firstRule.appendChild(firstOneOf);
+			root.appendChild(firstRule);
+			grammarDoc.appendChild(root);
+		}
 	}
 
 	@Override
 	public void buildFile() {
-		
-		if(!modelParsed)
-			throw new RuntimeException(msg1);
-		
-		System.out.println("[GrxmlBuilder] Building grammar file...");
-		
-		if(modelCheck && !modelGrammarNodes.isEmpty() && !modelEffectNodes.isEmpty()){    		
-		    Document grammar = XMLUtils.newXMLDocument();
-		    Element root = grammar.createElement("grammar");
-		    Element firstRule = grammar.createElement("rule");
-		    Element firstOneOf = grammar.createElement("one-of");
-		    
-		    for( int i = 0; i < modelGrammarNodes.size(); i++){	 
-		    	System.out.println("[GrxmlBuilder] Parsing grammar node");
-			   
-		    	Node grammarNode = modelGrammarNodes.get(i);
-		    	Node effectNode = modelEffectNodes.get(i);		    	
-		    	
-		    	NodeList ruleNodes = grammarNode.getChildNodes();
-		    	NodeList setNodes = effectNode.getChildNodes();
-		    	
-		    	for(int j = 0; j < ruleNodes.getLength(); j++){
-		    		
-		    		if(ruleNodes.item(j).getNodeName().equals("rule")){
-			    		System.out.println("[GrxmlBuilder] Parsing rule node");
-			    		
-			    		Element item = grammar.createElement("item");
-			    		Node ruleNode = ruleNodes.item(j);  
-					    // Create a duplicate node
-					    Node newNode = ruleNode.cloneNode(true);
-					    // Transfer ownership of the new node into the destination document
-					    grammar.adoptNode(newNode);	    
-			    		item.appendChild(newNode);
-			    		
-			    		for(int z = 0; z < setNodes.getLength(); z++){
-			    			
-			    		    if(setNodes.item(z).getNodeName().equals("set")){
-					    	System.out.println("[GrxmlBuilder] Parsing effect node");
-			    			
-					    	String var = setNodes.item(z).getAttributes().getNamedItem("var").getNodeValue();
-			    			String value = setNodes.item(z).getAttributes().getNamedItem("value").getNodeValue();
-			    			
-			    			Element tag = grammar.createElement("tag"); 	    						    			
-			    			tag.appendChild(grammar.createTextNode("out."+var+" = \""+value+"\";"));		    					    			   
-							
-			    			item.appendChild(tag);		    		    	
-			    		    }
-			    		}
-				    	firstOneOf.appendChild(item);
-		    		}    		
-		    	}
-		    }    
-		    firstRule.appendChild(firstOneOf);
-		    root.appendChild(firstRule);
-	    	grammar.appendChild(root);
-			
-	    	try {	
-	    		System.out.println("[GrxmlBuilder] Creating file...");
-	    		
-				Source source = new DOMSource(grammar); 		
-				String pattern = Pattern.quote(System.getProperty("file.separator"));
-				String[] pathSplitted = super.grammar.getDomainFileName().split(pattern);
-				String path = "";
-				
-				for(int i = 0; i < pathSplitted.length - 1; i++){
-					path += pathSplitted[i] + File.separator;
-				}			
-				
-				path += "grammar.grxml";
-	            File xmlFile = new File(path);            
-	            
-	            StreamResult result = new StreamResult(new OutputStreamWriter(new FileOutputStream(xmlFile)));
-	            Transformer xformer = TransformerFactory.newInstance().newTransformer();                        
-	            
-	            xformer.transform(source, result);
-	            
-	            super.grammar.setPath(path);
-	            
-	            System.out.println("[GrxmlBuilder] Grammar created. Path = "+ path);
-	            
-			} catch (TransformerException | TransformerFactoryConfigurationError e1) {
-				e1.printStackTrace();
-			
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
+
+		if (grammarDoc == null)
+			throw new RuntimeException(msg2);
+
+		try {
+			System.out.println("[GrxmlBuilder] Creating file...");
+			grammarSource = new DOMSource(grammarDoc);
+			String pattern = Pattern.quote(System.getProperty("file.separator"));
+			String[] pathSplitted = super.grammar.getDomainFileName().split(pattern);
+			String path = "";
+
+			for (int i = 0; i < pathSplitted.length - 1; i++) {
+				path += pathSplitted[i] + File.separator;
 			}
-    	}		
+
+			path += "grammar.grxml";
+			File xmlFile = new File(path);
+
+			StreamResult result = new StreamResult(new OutputStreamWriter(new FileOutputStream(xmlFile)));
+			Transformer xformer = TransformerFactory.newInstance().newTransformer();
+
+			xformer.transform(grammarSource, result);
+
+			super.grammar.setSource(grammarSource);
+			System.out.println("[GrxmlBuilder] Grammar created. Path = " + path);
+
+		} catch (TransformerException | TransformerFactoryConfigurationError e1) {
+			e1.printStackTrace();
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
 	}
 }

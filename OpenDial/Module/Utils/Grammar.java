@@ -1,11 +1,15 @@
 package opendial.modules.utils;
 
+import javax.xml.transform.dom.DOMSource;
+
 public class Grammar {
 
 	private String domainFileName;
-	private String path;
-	
-	public Grammar(String fileName){ this.setDomainFileName(fileName); }
+	private DOMSource source;
+
+	public Grammar(String fileName) {
+		this.setDomainFileName(fileName);
+	}
 
 	public String getDomainFileName() {
 		return this.domainFileName;
@@ -15,13 +19,12 @@ public class Grammar {
 		this.domainFileName = fileName;
 	}
 
-	public String getPath() {
-		return path;
+	public DOMSource getSource() {
+		return source;
 	}
 
-	public void setPath(String path) {
-		this.path = path;
+	public void setSource(DOMSource source) {
+		this.source = source;
 	}
-	
-	
+
 }

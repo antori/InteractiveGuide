@@ -33,30 +33,29 @@ import opendial.modules.utils.GrxmlBuilder;
 import opendial.utils.XMLUtils;
 
 public class GrxmlModule implements Module {
-	
+
 	private boolean paused = true;
 	private DialogueSystem dsys;
 	private Domain domain;
 	private String domainFileName;
 	private Grammar grammar;
-	
-	
-    public GrxmlModule(DialogueSystem system) {
-    	// Set initial parameters
+
+	public GrxmlModule(DialogueSystem system) {
+		// Set initial parameters
 		dsys = system;
 		domain = system.getDomain();
 		domainFileName = domain.getSourceFile().getPath();
 
-	    constructGrammar();
+		constructGrammar();
 
 	}
-	
+
 	@Override
 	public void start() {
 		// TODO Auto-generated method stub
 		new Thread(new GrammarProcess()).start();
-		paused= false;
-		
+		paused = false;
+
 	}
 
 	@Override
@@ -67,7 +66,7 @@ public class GrxmlModule implements Module {
 	@Override
 	public void pause(boolean toPause) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -75,22 +74,22 @@ public class GrxmlModule implements Module {
 		// TODO Auto-generated method stub
 		return false;
 	}
-	
+
 	class GrammarProcess implements Runnable {
 
-		public void run() {	
-			
+		public void run() {
+
 		}
 	}
-	
-	private void constructGrammar(){
+
+	private void constructGrammar() {
 		GrammarDirector director = new GrammarDirector();
 		GrammarBuilder builder = new GrxmlBuilder();
-		
+
 		director.setGrammarBuilder(builder);
 		director.constructGrammar(domainFileName);
 		grammar = director.getGrammar();
-	  
+
 	}
 
 }
