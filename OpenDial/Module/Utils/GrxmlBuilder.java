@@ -7,8 +7,6 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
-import javax.sql.rowset.spi.TransactionalWriter;
-import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
