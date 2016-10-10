@@ -25,6 +25,8 @@ public class GrxmlBuilder extends GrammarBuilder {
 
 	private Node rootNode;
 	private Document domainDoc;
+	private Document grammarDoc;
+	private DOMSource grammarSource;
 	private ArrayList<Node> modelNodes = new ArrayList<Node>();
 	private ArrayList<Node> modelGrammarNodes = new ArrayList<Node>();
 	private ArrayList<Node> modelEffectNodes = new ArrayList<Node>();
@@ -33,8 +35,6 @@ public class GrxmlBuilder extends GrammarBuilder {
 	private final static String msg = "[GrxmlModule] Error in xml syntax!";
 	private final static String msg1 = "[GrxmlModule] Can not create object!";
 	private final static String msg2 = "[GrxmlModule] Can not create file!";
-	private Document grammarDoc;
-	private DOMSource grammarSource;
 
 	@Override
 	public void parseModel() {
@@ -120,20 +120,18 @@ public class GrxmlBuilder extends GrammarBuilder {
 					}
 				}
 			}
-			//checking items attributes
+			// checking items attributes
 			NodeList items = domainDoc.getElementsByTagName("item");
-			for(int i=0; i<items.getLength(); i++){				
+			for (int i = 0; i < items.getLength(); i++) {
 				Node item = items.item(i);
 
-				if(item.getAttributes().getNamedItem("include") != null 
-						&& 
-					(item.getAttributes().getNamedItem("type") == null 
-							|| 
-					 item.getAttributes().getNamedItem("sem_field") == null)){
-					//include should implies type and sem_field
+				if (item.getAttributes().getNamedItem("include") != null
+						&& (item.getAttributes().getNamedItem("type") == null
+								|| item.getAttributes().getNamedItem("sem_field") == null)) {
+					// include should implies type and sem_field
 					modelCheck = false;
 					throw new RuntimeException(msg);
-				}				
+				}
 			}
 		}
 		modelParsed = true;
@@ -201,40 +199,38 @@ public class GrxmlBuilder extends GrammarBuilder {
 			firstRule.appendChild(firstOneOf);
 			root.appendChild(firstRule);
 			grammarDoc.appendChild(root);
-			
+
 			NodeList items = grammarDoc.getElementsByTagName("item");
 			ArrayList<Node> removedItems = new ArrayList<Node>();
-			
-			for(int i=0; i<items.getLength(); i++){
+
+			for (int i = 0; i < items.getLength(); i++) {
 				Node item = items.item(i);
-				
-				if(item.getAttributes().getNamedItem("include") != null 
-						&& item.getAttributes().getNamedItem("include").getNodeValue().equals("syn")){					
+
+				if (item.getAttributes().getNamedItem("include") != null
+						&& item.getAttributes().getNamedItem("include").getNodeValue().equals("syn")) {
 					String content = item.getTextContent();
-					System.out.println(content);				
+					System.out.println(content);
 					Neo4j db = new Neo4j();
 					String term = item.getTextContent();
 					String type = item.getAttributes().getNamedItem("type").getNodeValue();
 					String semanticField = item.getAttributes().getNamedItem("sem_field").getNodeValue();
 					ArrayList<String> results = db.getSynonimus(term, type, semanticField);
-					if(!results.isEmpty()){
-						Node parent = item.getParentNode();
-						Node oneOfSyn = grammarDoc.createElement("one-of");
-						for(String s:results){
-							System.out.println(s);
-							Node synItem = grammarDoc.createElement("item");
-							synItem.setTextContent(s);
-							oneOfSyn.appendChild(synItem);
-						}
+					Node parent = item.getParentNode();
+					Node oneOfSyn = grammarDoc.createElement("one-of");
+					for (String s : results) {
+						System.out.println(s);
 						Node synItem = grammarDoc.createElement("item");
-						synItem.setTextContent(item.getTextContent());
+						synItem.setTextContent(s);
 						oneOfSyn.appendChild(synItem);
-						parent.appendChild(oneOfSyn);
-						removedItems.add(item);
-					}					
-				}		
+					}
+					Node synItem = grammarDoc.createElement("item");
+					synItem.setTextContent(item.getTextContent());
+					oneOfSyn.appendChild(synItem);
+					parent.appendChild(oneOfSyn);
+					removedItems.add(item);
+				}
 			}
-			for(Node n:removedItems){
+			for (Node n : removedItems) {
 				n.getParentNode().removeChild(n);
 			}
 		}

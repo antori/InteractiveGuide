@@ -11,6 +11,8 @@ import java.net.URL;
 
 import java.io.FileReader;
 import java.io.DataOutputStream;
+
+import org.apache.commons.lang.WordUtils;
 import org.json.*;
 
 import opendial.DialogueSystem;
@@ -97,8 +99,10 @@ public class Neo4j {
 		try {
 			term = term.replaceAll("\t", "").replaceAll("\n", "").replaceAll(" ","");
 			semanticField = semanticField.replaceAll("\t", "").replaceAll("\n", "").replaceAll(" ","");
-			String query = "MATCH(n)-[:BELONGS_TO]->(m:SYNSET)<-[:BELONGS_TO]-(k),(m)-[:BELONGS_TO]->(j:SEMANTIC_FIELD)" + "WHERE n.word = \\\"" + term + "\\\" and j.name= \\\""
-					+ semanticField + "\\\" RETURN k.word";
+			String query = "MATCH(n:"+type.toUpperCase()+"{word:\\\""
+			               + term +"\\\"})-[:BELONGS_TO]->(m:SYNSET)<-[:BELONGS_TO]-(k:"
+			               +type.toUpperCase()+"),(m)-[:BELONGS_TO]->(j:SEMANTIC_FIELD{name:\\\""
+					       +WordUtils.capitalize(semanticField)+"\\\"}) RETURN distinct k.word";
 					
 			System.out.println(query);
 			String res = executePost(query);
