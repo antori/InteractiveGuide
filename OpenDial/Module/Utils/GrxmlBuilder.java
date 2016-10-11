@@ -19,6 +19,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import edu.stanford.nlp.objectbank.ResettableReaderIteratorFactory;
 import opendial.utils.XMLUtils;
 
 public class GrxmlBuilder extends GrammarBuilder {
@@ -148,7 +149,14 @@ public class GrxmlBuilder extends GrammarBuilder {
 		if (!modelGrammarNodes.isEmpty() && !modelEffectNodes.isEmpty()) {
 			grammarDoc = XMLUtils.newXMLDocument();
 			Element root = grammarDoc.createElement("grammar");
+			root.setAttribute("xmlns", "http://www.w3.org/2001/06/grammar");
+			root.setAttribute("version", "1.0");
+			root.setAttribute("xml:lang", "it-IT");
+			root.setAttribute("mode", "voice");
+			root.setAttribute("root", "MainRule");
+			root.setAttribute("tag-format", "semantics/1.0");
 			Element firstRule = grammarDoc.createElement("rule");
+			firstRule.setAttribute("id", "MainRule");
 			Element firstOneOf = grammarDoc.createElement("one-of");
 
 			for (int i = 0; i < modelGrammarNodes.size(); i++) {
@@ -167,14 +175,16 @@ public class GrxmlBuilder extends GrammarBuilder {
 					// Just one rule for grammar
 					if (ruleNodes.item(j).getNodeName().equals("rule")) {
 						System.out.println("[GrxmlBuilder] Building rule node");
-
+						Element ruleref = grammarDoc.createElement("ruleref");
+						ruleref.setAttribute("uri", "#" + ruleNodes.item(j).getAttributes().getNamedItem("id").getNodeValue());
 						Node ruleNode = ruleNodes.item(j);
 						// Create a duplicate node
 						Node newNode = ruleNode.cloneNode(true);
 						// Transfer ownership of the new node into the
 						// destination document
 						grammarDoc.adoptNode(newNode);
-						item.appendChild(newNode);
+						root.appendChild(newNode);
+						item.appendChild(ruleref);
 						break;
 
 					}
@@ -197,7 +207,7 @@ public class GrxmlBuilder extends GrammarBuilder {
 			}
 
 			firstRule.appendChild(firstOneOf);
-			root.appendChild(firstRule);
+			root.insertBefore(firstRule, root.getFirstChild());
 			grammarDoc.appendChild(root);
 
 			NodeList items = grammarDoc.getElementsByTagName("item");
@@ -216,6 +226,7 @@ public class GrxmlBuilder extends GrammarBuilder {
 					String semanticField = item.getAttributes().getNamedItem("sem_field").getNodeValue();
 					ArrayList<String> results = db.getSynonimus(term, type, semanticField);
 					Node parent = item.getParentNode();
+					Node tempItem = grammarDoc.createElement("item");
 					Node oneOfSyn = grammarDoc.createElement("one-of");
 					for (String s : results) {
 						System.out.println(s);
@@ -226,7 +237,8 @@ public class GrxmlBuilder extends GrammarBuilder {
 					Node synItem = grammarDoc.createElement("item");
 					synItem.setTextContent(item.getTextContent());
 					oneOfSyn.appendChild(synItem);
-					parent.appendChild(oneOfSyn);
+					tempItem.appendChild(oneOfSyn);
+					parent.appendChild(tempItem);
 					removedItems.add(item);
 				}
 			}
