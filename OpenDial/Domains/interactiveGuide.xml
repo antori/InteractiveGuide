@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain>
+	<settings>
+		<modules>
+            opendial.modules.GrxmlModule
+		</modules>
+	</settings>
+	<!-- NLU model -->
+	<model trigger="u_u">	
+  		<rule>
+			<case>
+				<grammar>
+					<rule id="GET_AUTHOR_NAME" scope="public">
+						<ruleref special="GARBAGE"/>
+						<item>
+          					<one-of>
+          						<item>
+          							<item>
+          								<one-of>
+          									<item>Chi</item>
+          									<item>Qual</item>
+          									<item>Quale</item>
+          								</one-of>
+          							</item>
+          							<ruleref special="GARBAGE"/>
+          							<item type="noun" include="syn" sem_field="painting">autore</item>
+          						</item>
+          					</one-of>
+          				</item>
+        					<ruleref special="GARBAGE"/>
+      				</rule>
+				</grammar>
+				<effect prob="1">
+					<set var="a_u" value="GET_AUTHOR_NAME" />
+				</effect>
+			</case>
+			<case>
+				<grammar>
+					<rule id="PAINTING_NAME" scope="public">
+						<ruleref special="GARBAGE"/>
+						<item>
+          					<one-of>
+          						<item>
+          							<item>
+          								<one-of>
+          									<item>Come</item>
+          									<item>Qual</item>
+          									<item>Quale</item>
+          								</one-of>
+          							</item>
+          							<ruleref special="GARBAGE"/>
+          							<item type="noun" include="syn" sem_field="factotum">nome</item>
+          						</item>
+          					</one-of>
+          				</item>
+        				<ruleref special="GARBAGE"/>
+      				</rule>
+				</grammar>
+				<effect prob="1">
+					<set var="a_u" value="GET_PAINTING_NAME" />
+				</effect>
+			</case>
+		</rule>	
+	</model>
+</domain>
