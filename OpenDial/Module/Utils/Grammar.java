@@ -1,14 +1,23 @@
 package opendial.modules.utils;
 
+import java.util.ArrayList;
+
 import javax.xml.transform.dom.DOMSource;
 
-public class Grammar {
+public class Grammar implements Observable{
 
 	private String domainFileName;
+	private String grammarFileName;
 	private DOMSource source;
-
-	public Grammar(String fileName) {
-		this.setDomainFileName(fileName);
+	private ArrayList<Observer> observers = new ArrayList<Observer>();
+	private static final Grammar grammar = new Grammar();
+	
+	private Grammar(){
+		
+	}
+	
+	public static Grammar getInstance(){
+		return grammar;
 	}
 
 	public String getDomainFileName() {
@@ -25,6 +34,35 @@ public class Grammar {
 
 	public void setSource(DOMSource source) {
 		this.source = source;
+	}
+	
+	public String getGrammarFileName() {
+		return grammarFileName;
+	}
+
+	public void setGrammarFileName(String grammarFileName) {
+		this.grammarFileName = grammarFileName;
+		notifyObservers();
+	} 
+
+	@Override
+	public void subscribe(Observer o) {
+		observers.add(o);
+		
+	}
+
+	@Override
+	public void notifyObservers() {
+		for(Observer o:observers){
+			o.update();
+		}
+		
+	}
+
+	@Override
+	public String getState() {
+		return getGrammarFileName();
+		
 	}
 
 }

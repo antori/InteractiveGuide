@@ -104,9 +104,7 @@ public class Neo4j {
 			               +type.toUpperCase()+"),(m)-[:BELONGS_TO]->(j:SEMANTIC_FIELD{name:\\\""
 					       +WordUtils.capitalize(semanticField)+"\\\"}) RETURN distinct k.word";
 					
-			System.out.println(query);
 			String res = executePost(query);
-			System.out.println(res);
 			JSONObject json = new JSONObject(res);
 			JSONArray data = (JSONArray) json.get("results");
 

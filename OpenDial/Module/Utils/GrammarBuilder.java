@@ -9,7 +9,8 @@ public abstract class GrammarBuilder {
 	}
 
 	public void createNewGrammar(String fileName) {
-		grammar = new Grammar(fileName);
+		grammar = Grammar.getInstance();
+		grammar.setDomainFileName(fileName);
 	}
 
 	public abstract void parseModel();

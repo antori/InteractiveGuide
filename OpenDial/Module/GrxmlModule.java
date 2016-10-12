@@ -29,6 +29,7 @@ import opendial.modules.StringReceiver.ReceiverProcess;
 import opendial.modules.utils.Grammar;
 import opendial.modules.utils.GrammarBuilder;
 import opendial.modules.utils.GrammarDirector;
+import opendial.modules.utils.GrammarObserver;
 import opendial.modules.utils.GrxmlBuilder;
 import opendial.utils.XMLUtils;
 
@@ -38,13 +39,18 @@ public class GrxmlModule implements Module {
 	private DialogueSystem dsys;
 	private Domain domain;
 	private String domainFileName;
-	private Grammar grammar;
+	private static Grammar grammar;
+	private static GrammarObserver grammarObserver;
 
 	public GrxmlModule(DialogueSystem system) {
 		// Set initial parameters
 		dsys = system;
 		domain = system.getDomain();
 		domainFileName = domain.getSourceFile().getPath();
+		
+		grammar = Grammar.getInstance();
+		grammarObserver = GrammarObserver.getInstance();
+		grammarObserver.setGrammar(grammar);
 
 		constructGrammar();
 
@@ -83,12 +89,12 @@ public class GrxmlModule implements Module {
 	}
 
 	private void constructGrammar() {
+		
 		GrammarDirector director = new GrammarDirector();
 		GrammarBuilder builder = new GrxmlBuilder();
 
 		director.setGrammarBuilder(builder);
 		director.constructGrammar(domainFileName);
-		grammar = director.getGrammar();
 
 	}
 
