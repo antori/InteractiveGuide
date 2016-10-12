@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?><grammar xmlns="http://www.w3.org/2001/06/grammar" mode="voice" root="MainRule" tag-format="semantics/1.0" version="1.0" xml:lang="it-IT"><rule id="MainRule"><one-of><item><ruleref uri="#GET_AUTHOR_NAME"/><tag>out.a_u = "GET_AUTHOR_NAME";</tag></item></one-of></rule><rule id="GET_AUTHOR_NAME" scope="public">
+						<ruleref special="GARBAGE"/>
+						<item>
+          					<one-of>
+          						<item>
+          							<item>
+          								<one-of>
+          									<item>Chi</item>
+          									<item>Qual</item>
+          									<item>Quale</item>
+          								</one-of>
+          							</item>
+          							<ruleref special="GARBAGE"/>
+          							
+          						<item><one-of><item>pittore</item><item>autore</item></one-of></item></item>
+          					</one-of>
+          				</item>
+        					<ruleref special="GARBAGE"/>
+      				</rule></grammar>
