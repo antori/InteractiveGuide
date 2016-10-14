@@ -1,37 +1,14 @@
 package opendial.modules;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
-
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.TransformerFactoryConfigurationError;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import opendial.DialogueState;
 import opendial.DialogueSystem;
 import opendial.domains.Domain;
-import opendial.modules.StringReceiver.ReceiverProcess;
-import opendial.modules.utils.Grammar;
-import opendial.modules.utils.GrammarBuilder;
-import opendial.modules.utils.GrammarDirector;
-import opendial.modules.utils.GrammarObserver;
-import opendial.modules.utils.GrxmlBuilder;
-import opendial.utils.XMLUtils;
+import opendial.modules.grammarBuilder.Grammar;
+import opendial.modules.grammarBuilder.GrammarBuilder;
+import opendial.modules.grammarBuilder.GrammarDirector;
+import opendial.modules.grammarBuilder.GrammarObserver;
+import opendial.modules.grammarBuilder.GrxmlBuilder;
 
 public class GrxmlModule implements Module {
 
