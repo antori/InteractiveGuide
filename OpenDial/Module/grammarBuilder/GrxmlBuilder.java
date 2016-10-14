@@ -178,7 +178,8 @@ public class GrxmlBuilder extends GrammarBuilder {
 					if (ruleNodes.item(j).getNodeName().equals("rule")) {
 						System.out.println("[GrxmlBuilder] Building rule node");
 						Element ruleref = grammarDoc.createElement("ruleref");
-						ruleref.setAttribute("uri", "#" + ruleNodes.item(j).getAttributes().getNamedItem("id").getNodeValue());
+						ruleref.setAttribute("uri",
+								"#" + ruleNodes.item(j).getAttributes().getNamedItem("id").getNodeValue());
 						Node ruleNode = ruleNodes.item(j);
 						// Create a duplicate node
 						Node newNode = ruleNode.cloneNode(true);
@@ -218,32 +219,32 @@ public class GrxmlBuilder extends GrammarBuilder {
 				Node item = items.item(i);
 
 				if (item.getAttributes().getNamedItem("include") != null) {
-					
+
 					String queryType = item.getAttributes().getNamedItem("include").getNodeValue();
 					Neo4j db = new Neo4j();
 					String term = item.getTextContent();
 					String type = item.getAttributes().getNamedItem("type").getNodeValue();
 					String semanticField = item.getAttributes().getNamedItem("sem_field").getNodeValue();
-					
+
 					QueryExecutor executor = db.getQueryExecutor(queryType);
 					ArrayList<String> results = executor.executeQuery(term, type, semanticField);
-					
+
 					Node parent = item.getParentNode();
 					Node tempItem = grammarDoc.createElement("item");
 					Node oneOfSyn = grammarDoc.createElement("one-of");
-					
+
 					for (String s : results) {
 						Node synItem = grammarDoc.createElement("item");
 						synItem.setTextContent(s);
 						oneOfSyn.appendChild(synItem);
 					}
-					
+
 					Node synItem = grammarDoc.createElement("item");
 					synItem.setTextContent(item.getTextContent());
 					oneOfSyn.appendChild(synItem);
 					tempItem.appendChild(oneOfSyn);
 					parent.appendChild(tempItem);
-					
+
 					removedItems.add(item);
 				}
 			}
@@ -282,9 +283,8 @@ public class GrxmlBuilder extends GrammarBuilder {
 			writer.close();
 			super.grammar.setSource(grammarSource);
 			super.grammar.setGrammarFileName(path);
-			
+
 			System.out.println("[GrxmlBuilder] Grammar created. Path = " + path);
-			
 
 		} catch (TransformerException | TransformerFactoryConfigurationError e1) {
 			e1.printStackTrace();

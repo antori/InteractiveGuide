@@ -10,17 +10,17 @@ public class SynQueryExecutor extends QueryExecutor {
 
 	@Override
 	public ArrayList<String> executeQuery(String term, String type, String semanticField) {
-		
+
 		ArrayList<String> results = new ArrayList<String>();
 
 		try {
-			term = term.replaceAll("\t", "").replaceAll("\n", "").replaceAll(" ","");
-			semanticField = semanticField.replaceAll("\t", "").replaceAll("\n", "").replaceAll(" ","");
-			String query = "MATCH(n:"+type.toUpperCase()+"{word:\\\""
-			               + term +"\\\"})-[:BELONGS_TO]->(m:SYNSET)<-[:BELONGS_TO]-(k:"
-			               +type.toUpperCase()+"),(m)-[:BELONGS_TO]->(j:SEMANTIC_FIELD{name:\\\""
-					       +WordUtils.capitalize(semanticField)+"\\\"}) RETURN distinct k.word";
-					
+			term = term.replaceAll("\t", "").replaceAll("\n", "").replaceAll(" ", "");
+			semanticField = semanticField.replaceAll("\t", "").replaceAll("\n", "").replaceAll(" ", "");
+			String query = "MATCH(n:" + type.toUpperCase() + "{word:\\\"" + term
+					+ "\\\"})-[:BELONGS_TO]->(m:SYNSET)<-[:BELONGS_TO]-(k:" + type.toUpperCase()
+					+ "),(m)-[:BELONGS_TO]->(j:SEMANTIC_FIELD{name:\\\"" + WordUtils.capitalize(semanticField)
+					+ "\\\"}) RETURN distinct k.word";
+
 			String res = executePost(query);
 			JSONObject json = new JSONObject(res);
 			JSONArray data = (JSONArray) json.get("results");
@@ -30,7 +30,7 @@ public class SynQueryExecutor extends QueryExecutor {
 
 			for (int i = 0; i < data.length(); i++) {
 				JSONObject temp = (JSONObject) data.get(i);
-				JSONArray row = (JSONArray)temp.get("row");
+				JSONArray row = (JSONArray) temp.get("row");
 				results.add(row.getString(0));
 			}
 

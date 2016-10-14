@@ -9,11 +9,11 @@ import java.net.URL;
 import java.util.ArrayList;
 
 public abstract class QueryExecutor {
-	
+
 	private String neo4jIP = "143.225.85.137";
 	private int neo4jPort = 7474;
-	
-    protected String executePost(String query) {
+
+	protected String executePost(String query) {
 
 		HttpURLConnection connection = null;
 		try {
@@ -56,6 +56,6 @@ public abstract class QueryExecutor {
 			}
 		}
 	}
-	
+
 	public abstract ArrayList<String> executeQuery(String term, String type, String semanticField);
 }
