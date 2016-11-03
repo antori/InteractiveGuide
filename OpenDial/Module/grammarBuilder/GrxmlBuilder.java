@@ -20,7 +20,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import opendial.modules.neo4j.Neo4j;
+import opendial.modules.neo4j.PersistenceManager;
 import opendial.modules.neo4j.QueryExecutor;
 import opendial.utils.XMLUtils;
 
@@ -214,20 +214,17 @@ public class GrxmlBuilder extends GrammarBuilder {
 
 			NodeList items = grammarDoc.getElementsByTagName("item");
 			ArrayList<Node> removedItems = new ArrayList<Node>();
-
+			System.out.println("[GrxmlBuilder] Building item nodes");
 			for (int i = 0; i < items.getLength(); i++) {
 				Node item = items.item(i);
 
-				if (item.getAttributes().getNamedItem("include") != null) {
+				if (item.getAttributes().getNamedItem("query") != null) {
 
-					String queryType = item.getAttributes().getNamedItem("include").getNodeValue();
-					Neo4j db = new Neo4j();
-					String term = item.getTextContent();
-					String type = item.getAttributes().getNamedItem("type").getNodeValue();
-					String semanticField = item.getAttributes().getNamedItem("sem_field").getNodeValue();
-
-					QueryExecutor executor = db.getQueryExecutor(queryType);
-					ArrayList<String> results = executor.executeQuery(term, type, semanticField);
+					PersistenceManager db = new PersistenceManager();
+					String query = item.getAttributes().getNamedItem("query").getNodeValue();
+					
+					QueryExecutor executor = db.getQueryExecutor("neo4j");
+					ArrayList<String> results = executor.executeQuery(query);
 
 					Node parent = item.getParentNode();
 					Node tempItem = grammarDoc.createElement("item");
@@ -239,9 +236,9 @@ public class GrxmlBuilder extends GrammarBuilder {
 						oneOfSyn.appendChild(synItem);
 					}
 
-					Node synItem = grammarDoc.createElement("item");
+					/*Node synItem = grammarDoc.createElement("item");
 					synItem.setTextContent(item.getTextContent());
-					oneOfSyn.appendChild(synItem);
+					oneOfSyn.appendChild(synItem);*/
 					tempItem.appendChild(oneOfSyn);
 					parent.appendChild(tempItem);
 
