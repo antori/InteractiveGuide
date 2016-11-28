@@ -2,18 +2,30 @@ package opendial.modules.neo4j;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+import opendial.utils.XMLUtils;
 
 public class Neo4jQueryExecutor extends QueryExecutor {
-	
+
 	private String neo4jIP = "143.225.85.137";
 	private int neo4jPort = 7474;
 
@@ -42,7 +54,7 @@ public class Neo4jQueryExecutor extends QueryExecutor {
 			// Get Response
 			InputStream is = connection.getInputStream();
 			BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-			StringBuilder response = new StringBuilder(); 
+			StringBuilder response = new StringBuilder();
 			String line;
 			while ((line = rd.readLine()) != null) {
 				response.append(line);
@@ -66,8 +78,8 @@ public class Neo4jQueryExecutor extends QueryExecutor {
 		ArrayList<String> results = new ArrayList<String>();
 
 		try {
-			
-			query = query.replace("^", "<");
+
+			query = query.replace("&lt", "<");
 			System.out.println(query);
 			String res = executePost(query);
 			JSONObject json = new JSONObject(res);
@@ -81,7 +93,6 @@ public class Neo4jQueryExecutor extends QueryExecutor {
 				JSONArray row = (JSONArray) temp.get("row");
 				results.add(row.getString(0));
 			}
-			
 
 			return results;
 
