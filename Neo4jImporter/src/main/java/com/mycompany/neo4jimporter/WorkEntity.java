@@ -17,7 +17,6 @@ public class WorkEntity {
     public static final String NAME_FIELD = "http://it.dbpedia.org/property/titolo";
     public static final String AUTHOR_FIELD = "http://it.dbpedia.org/property/artista";
     public static final String SUBJECT_FIELD = "http://purl.org/dc/terms/subject";
-    public static final String WIKILINK_FIELD = "http://dbpedia.org/ontology/wikiPageWikiLink";
     public static final String TECIQUE_FIELD = "http://it.dbpedia.org/property/tecnica";
     public static final String TYPE_FIELD = "http://it.dbpedia.org/property/opera";
     public static final String DATE_FIELD = "http://it.dbpedia.org/property/data";
@@ -27,9 +26,8 @@ public class WorkEntity {
     public static final String WIDTH_FIELD = "http://it.dbpedia.org/property/larghezza";
     
     private String name;
-    private String author;
+    private AuthorEntity author;
     private ArrayList<String> subjects = new ArrayList<String>();
-    private ArrayList<String> wikiLinks = new ArrayList<String>();
     private String tecnique;
     private String type;
     private String date;
@@ -62,20 +60,6 @@ public class WorkEntity {
     }
 
     /**
-     * @return the wikiLinks
-     */
-    public ArrayList<String> getWikiLinks() {
-        return wikiLinks;
-    }
-
-    /**
-     * @param wikiLinks the wikiLinks to set
-     */
-    public void setWikiLinks(String wikiLink) {
-        this.wikiLinks.add(wikiLink);
-    }
-
-    /**
      * @return the name
      */
     public String getName() {
@@ -92,14 +76,14 @@ public class WorkEntity {
     /**
      * @return the author
      */
-    public String getAuthor() {
+    public AuthorEntity getAuthor() {
         return author;
     }
 
     /**
      * @param author the author to set
      */
-    public void setAuthor(String author) {
+    public void setAuthor(AuthorEntity author) {
         this.author = author;
     }
 
@@ -162,16 +146,6 @@ public class WorkEntity {
     /**
      * @return the city
      */
-    public String getCity() {
-        return city;
-    }
-
-    /**
-     * @param city the city to set
-     */
-    public void setCity(String city) {
-        this.city = city;
-    }
 
     /**
      * @return the height
@@ -199,6 +173,20 @@ public class WorkEntity {
      */
     public void setWidth(String width) {
         this.width = width;
+    }
+
+    /**
+     * @return the city
+     */
+    public String getCity() {
+        return city;
+    }
+
+    /**
+     * @param city the city to set
+     */
+    public void setCity(String city) {
+        this.city = city;
     }
     
 }

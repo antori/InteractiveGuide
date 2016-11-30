@@ -12,11 +12,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -83,8 +81,8 @@ public class Neo4jQueryExecutor {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder;
         try {
-            /*String res = executePost("MATCH (n) DETACH DELETE n");
-            System.out.println(res);*/
+            String res = executePost("MATCH (n) DETACH DELETE n");
+            System.out.println(res);
             builder = factory.newDocumentBuilder();
             Document doc = builder.parse(new File(fileName));
             Node root = doc.getFirstChild();
@@ -122,34 +120,271 @@ public class Neo4jQueryExecutor {
             inserted = true;
         } else if (n.getNodeName().equals("presentation")) {
             WorkEntity w = q.execQuery(n.getPreviousSibling().getPreviousSibling().getTextContent());
+            AuthorEntity a = w.getAuthor();
+            System.out.println(w.getName() + " " + a.getLabel());
+
+            if (EntityRepository.authors.get(a.getLabel()) == null) {
+                EntityRepository.authors.put(a.getLabel(), true);
+
+                String birthy = (a.getBirthyear() == null) ? "null" : a.getBirthyear();
+                String deathy = (a.getDeathyear() == null) ? "null" : a.getDeathyear();
+                String desc = (a.getDescription() == null) ? "null" : a.getDescription();
+                String nat = (a.getNationality() == null) ? "null" : a.getNationality();
+                String gender = (a.getGender() == null) ? "null" : a.getGender();
+
+                //(a > b) ? a : b;
+                String query = "CREATE (n:PERSON { "
+                        + "name:\\\"" + a.getLabel().replace("à", "a'")
+                        .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                        .replace("ò", "o'").replace("é", "e'").replace("É", "E")
+                        + "\\\","
+                        + "birth_year:\\\"" + birthy.replace("à", "a'")
+                        .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                        .replace("ò", "o'").replace("é", "e'").replace("É", "E")
+                        + "\\\","
+                        + "death_year:\\\"" + deathy.replace("à", "a'")
+                        .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                        .replace("ò", "o'").replace("é", "e'").replace("É", "E")
+                        + "\\\","
+                        + "gender:\\\"" + gender.replace("à", "a'")
+                        .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                        .replace("ò", "o'").replace("é", "e'").replace("É", "E")
+                        + "\\\","
+                        + "description:\\\"" + desc.replace("\"", "").replace("à", "a'")
+                        .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                        .replace("ò", "o'").replace("é", "e'").replace("É", "E").replace("ì", "i'")
+                        .replace("í", "i").replace("«", "").replace("»", "").replace("”", "").replace("È", "E'")
+                        .replace("“", "").replace("(", "").replace(")", "").replace("’", "'").replace("–", "-")
+                        + "\\\","
+                        + "nationality:\\\"" + nat.replace("à", "a'")
+                        .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                        .replace("ò", "o'").replace("é", "e'").replace("É", "E")
+                        + "\\\"})";
+                System.out.println(query);
+                String res = executePost(query);
+                System.out.println(res);
+
+                ArrayList<String> subjects = a.getSubjects();
+                for (String s : subjects) {
+
+                    if (EntityRepository.subjects.get(s) == null) {
+                        EntityRepository.subjects.put(s, true);
+                        String querySubject = " MATCH(a:PERSON{name:\\\""
+                                + a.getLabel().replace("à", "a'")
+                                .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                                .replace("ò", "o'").replace("é", "e'").replace("É", "E")
+                                + "\\\"})"
+                                + " CREATE (n:SUBJECT{name:\\\""
+                                + s.replace("\"", "").replace("à", "a'")
+                                .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                                .replace("ò", "o'").replace("é", "e'").replace("É", "E").replace("ì", "i'")
+                                .replace("í", "i").replace("«", "").replace("»", "").replace("”", "").replace("È", "E'")
+                                .replace("“", "").replace("(", "").replace(")", "").replace("’", "'").replace("–", "-")
+                                .replace("Categoria:", "").replace("http://it.dbpedia.org/resource/", "").replace("_", " ")
+                                + "\\\"})"
+                                + " CREATE (n)-[:IS_SUBJECT_OF]->(a)";
+                        System.out.println(querySubject);
+                        String resS = executePost(querySubject);
+                        System.out.println(resS);
+                    } else {
+
+                        String querySubject = "MATCH (n:SUBJECT{name:\\\""
+                                + s.replace("\"", "").replace("à", "a'")
+                                .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                                .replace("ò", "o'").replace("é", "e'").replace("É", "E").replace("ì", "i'")
+                                .replace("í", "i").replace("«", "").replace("»", "").replace("”", "").replace("È", "E'")
+                                .replace("“", "").replace("(", "").replace(")", "").replace("’", "'").replace("–", "-")
+                                .replace("Categoria:", "").replace("http://it.dbpedia.org/resource/", "").replace("_", " ")
+                                + "\\\"}) MATCH(a:PERSON{name:\\\""
+                                + a.getLabel().replace("à", "a'")
+                                .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                                .replace("ò", "o'").replace("é", "e'").replace("É", "E")
+                                + "\\\"}) CREATE (n)-[:IS_SUBJECT_OF]->(a)";
+                        System.out.println(querySubject);
+                        String resS = executePost(querySubject);
+                        System.out.println(resS);
+
+                    }
+                }
+
+                if (a.getBirthplace() != null && a.getDeathplace() != null) {
+
+                    if (EntityRepository.cities.get(a.getBirthplace().replace("à", "a'")
+                            .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                            .replace("ò", "o'").replace("é", "e'").replace("ü", "u")
+                            .replace("ö", "o").replace("http://it.dbpedia.org/resource/", "")
+                            .replace("_", " ")) == null) {
+
+                        EntityRepository.cities.put(a.getBirthplace().replace("à", "a'")
+                                .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                                .replace("ò", "o'").replace("é", "e'").replace("ü", "u")
+                                .replace("ö", "o").replace("http://it.dbpedia.org/resource/", "")
+                                .replace("_", " "), true);
+
+                        String queryc = " MATCH(a:PERSON{name:\\\""
+                                + a.getLabel().replace("à", "a'")
+                                .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                                .replace("ò", "o'").replace("é", "e'").replace("É", "E")
+                                + "\\\"}) CREATE (n:CITY { "
+                                + "name:\\\"" + a.getBirthplace().replace("à", "a'")
+                                .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                                .replace("ò", "o'").replace("é", "e'").replace("ü", "u")
+                                .replace("ö", "o").replace("http://it.dbpedia.org/resource/", "")
+                                .replace("_", " ")
+                                + "\\\"}) CREATE (a)-[:BORN_IN]->(n)";
+                        System.out.println(queryc);
+                        String res1 = executePost(queryc);
+                        System.out.println(res1);
+                    } else {
+                        String queryc = " MATCH(a:PERSON{name:\\\""
+                                + a.getLabel().replace("à", "a'")
+                                .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                                .replace("ò", "o'").replace("é", "e'").replace("É", "E")
+                                + "\\\"}) MATCH(n:CITY { "
+                                + "name:\\\"" + a.getBirthplace().replace("à", "a'")
+                                .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                                .replace("ò", "o'").replace("é", "e'").replace("ü", "u")
+                                .replace("ö", "o").replace("http://it.dbpedia.org/resource/", "")
+                                .replace("_", " ")
+                                + "\\\"}) CREATE (a)-[:BORN_IN]->(n)";
+                        System.out.println(queryc);
+                        String res1 = executePost(queryc);
+                        System.out.println(res1);
+                    }
+
+                    if (EntityRepository.cities.get(a.getDeathplace().replace("à", "a'")
+                            .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                            .replace("ò", "o'").replace("é", "e'").replace("ü", "u")
+                            .replace("ö", "o").replace("http://it.dbpedia.org/resource/", "")
+                            .replace("_", " ")) == null) {
+
+                        EntityRepository.cities.put(a.getDeathplace().replace("à", "a'")
+                                .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                                .replace("ò", "o'").replace("é", "e'").replace("ü", "u")
+                                .replace("ö", "o").replace("http://it.dbpedia.org/resource/", "")
+                                .replace("_", " "), true);
+
+                        String queryc = " MATCH(a:PERSON{name:\\\""
+                                + a.getLabel().replace("à", "a'")
+                                .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                                .replace("ò", "o'").replace("é", "e'").replace("É", "E")
+                                + "\\\"}) CREATE (n:CITY { "
+                                + "name:\\\"" + a.getDeathplace().replace("à", "a'")
+                                .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                                .replace("ò", "o'").replace("é", "e'").replace("ü", "u")
+                                .replace("ö", "o").replace("http://it.dbpedia.org/resource/", "")
+                                .replace("_", " ")
+                                + "\\\"}) CREATE (a)-[:DEAD_IN]->(n)";
+                        System.out.println(queryc);
+                        String res1 = executePost(queryc);
+                        System.out.println(res1);
+                    } else {
+                        String queryc = " MATCH(a:PERSON{name:\\\""
+                                + a.getLabel().replace("à", "a'")
+                                .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                                .replace("ò", "o'").replace("é", "e'").replace("É", "E")
+                                + "\\\"}) MATCH(n:CITY { "
+                                + "name:\\\"" + a.getDeathplace().replace("à", "a'")
+                                .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                                .replace("ò", "o'").replace("é", "e'").replace("ü", "u")
+                                .replace("ö", "o").replace("http://it.dbpedia.org/resource/", "")
+                                .replace("_", " ")
+                                + "\\\"}) CREATE (a)-[:DEAD_IN]->(n)";
+                        System.out.println(queryc);
+                        String res1 = executePost(queryc);
+                        System.out.println(res1);
+                    }
+                }
+            }
+
+            boolean city = false;
+            String c = "";
+            if (EntityRepository.cities.get(w.getCity().replace("à", "a'")
+                    .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                    .replace("ò", "o'").replace("é", "e'").replace("ü", "u")
+                    .replace("ö", "o").replace("http://it.dbpedia.org/resource/", "")
+                    .replace("_", " ")) == null) {
+
+                EntityRepository.cities.put(w.getCity().replace("à", "a'")
+                        .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                        .replace("ò", "o'").replace("é", "e'").replace("ü", "u")
+                        .replace("ö", "o").replace("http://it.dbpedia.org/resource/", "")
+                        .replace("_", " "), true);
+
+                String query = "CREATE (n:CITY { "
+                        + "name:\\\"" + w.getCity().replace("à", "a'")
+                        .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                        .replace("ò", "o'").replace("é", "e'").replace("ü", "u")
+                        .replace("ö", "o").replace("http://it.dbpedia.org/resource/", "")
+                        .replace("_", " ")
+                        + "\\\"})";
+                System.out.println(query);
+                String res = executePost(query);
+                System.out.println(res);
+                city = true;
+            }
+            boolean is = EntityRepository.locations.get(w.getLocation().replace("à", "a'")
+                    .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                    .replace("ò", "o'").replace("é", "e'").replace("ü", "u")
+                    .replace("ö", "o").replace("http://it.dbpedia.org/resource/", "")
+                    .replace("_", " ")) == null;
+
+            if (is || city) {
+
+                if (!is) {
+                    c = " di " + w.getCity().replace("à", "a'")
+                            .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                            .replace("ò", "o'").replace("é", "e'").replace("ü", "u")
+                            .replace("ö", "o").replace("http://it.dbpedia.org/resource/", "")
+                            .replace("_", " ");
+                }
+
+                EntityRepository.locations.put(w.getLocation().replace("à", "a'")
+                        .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                        .replace("ò", "o'").replace("é", "e'").replace("ü", "u")
+                        .replace("ö", "o").replace("http://it.dbpedia.org/resource/", "")
+                        .replace("_", " "), true);
+
+                String query = "MATCH(c:CITY{name:\\\"" + w.getCity().replace("à", "a'")
+                        .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                        .replace("ò", "o'").replace("é", "e'").replace("ü", "u")
+                        .replace("ö", "o").replace("http://it.dbpedia.org/resource/", "")
+                        .replace("_", " ")
+                        + "\\\"}) CREATE (n:LOCATION { "
+                        + "name:\\\"" + w.getLocation().replace("à", "a'")
+                        .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                        .replace("ò", "o'").replace("é", "e'").replace("ü", "u")
+                        .replace("ö", "o").replace("http://it.dbpedia.org/resource/", "")
+                        .replace("_", " ") + c
+                        + "\\\"}) CREATE (n)-[:LOCATED_IN]->(c)";
+                System.out.println(query);
+                String res = executePost(query);
+                System.out.println(res);
+
+            }
+
             System.out.println(w.toString());
             String sml = n.getFirstChild().getTextContent().replace("<prosody rate= \"0.9\" pitch= \"+60%\">", "").replace("</prosody>", "").replace("\n", "")
                     .replace("\"", "").replace("à", "a'")
                     .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
                     .replace("ò", "o'").replace("é", "e'").toLowerCase();
-            String query = "CREATE (n:INFO{id:'"
+            String query = "MATCH(l:LOCATION{name:\\\"" + w.getLocation().replace("à", "a'")
+                    .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                    .replace("ò", "o'").replace("é", "e'").replace("ü", "u")
+                    .replace("ö", "o").replace("http://it.dbpedia.org/resource/", "")
+                    .replace("_", " ") + c
+                    + "\\\"}) "
+                    + "MATCH(a:PERSON{name:\\\"" + a.getLabel().replace("à", "a'")
+                    .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                    .replace("ò", "o'").replace("é", "e'").replace("É", "E")
+                    + "\\\"}) CREATE(n:INFO:PAINTING"
+                    + "{id:'"
                     + id
                     + "', name:\\\"" + w.getName()
                     .replace("à", "a'")
                     .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
                     .replace("ò", "o'").replace("é", "e'").replace("@it'", "")
-                    + "\\\", author:\\\"" + w.getAuthor()
-                    .replace("à", "a'")
-                    .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
-                    .replace("ò", "o'").replace("é", "e'").replace("É", "E").replace("http://it.dbpedia.org/resource/", "")
-                    .replace("_", " ")
                     + "\\\", date:\\\"" + w.getDate()
-                    .replace("à", "a'")
-                    .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
-                    .replace("ò", "o'").replace("é", "e'").replace("http://it.dbpedia.org/resource/", "")
-                    .replace("_", " ")
-                    + "\\\", location:\\\"" + w.getLocation()
-                    .replace("à", "a'")
-                    .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
-                    .replace("ò", "o'").replace("é", "e'").replace("ü", "u")
-                    .replace("ö", "o").replace("http://it.dbpedia.org/resource/", "")
-                    .replace("_", " ")
-                    + "\\\", city:\\\"" + w.getCity()
                     .replace("à", "a'")
                     .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
                     .replace("ò", "o'").replace("é", "e'").replace("http://it.dbpedia.org/resource/", "")
@@ -164,33 +399,68 @@ public class Neo4jQueryExecutor {
                     .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
                     .replace("ò", "o'").replace("é", "e'").replace("http://it.dbpedia.org/resource/", "")
                     .replace("_", " ")
-                    + "\\\", type:\\\"" + w.getType()
-                    .replace("à", "a'")
-                    .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
-                    .replace("ò", "o'").replace("é", "e'").replace("http://it.dbpedia.org/resource/", "")
-                    .replace("_", " ")
                     + "\\\", tecnique:\\\"" + w.getTecnique()
                     .replace("à", "a'")
                     .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
                     .replace("ò", "o'").replace("é", "e'").replace("http://it.dbpedia.org/resource/", "")
                     .replace("_", " ").replace("@it'", "")
-                    + "\\\", subjects:\\\"" + Arrays.toString(w.getSubjects().toArray())
-                    .replace("à", "a'")
-                    .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
-                    .replace("ò", "o'").replace("é", "e'").replace("http://it.dbpedia.org/resource/", "")
-                    .replace("_", " ").replace("@it'", "").replace("ü", "u")
-                    .replace("ö", "o").replace("É", "E").replace("Categoria:", "")
-                    + "\\\", sml:\\\"" + sml + "\\\"})";
+                    + "\\\", sml:\\\"" + sml + "\\\"}) CREATE (a)-[:PAINTED]->(n)-[:HOSTED_IN]->(l)";
             System.out.println(query);
             String res = executePost(query);
             System.out.println(res);
             inserted = true;
-        } else if (n.getNodeName().equals("style") || n.getNodeName().equals("iconography") || n.getNodeName().equals("author")) {
+
+            ArrayList<String> subjects = w.getSubjects();
+            for (String s : subjects) {
+
+                if (EntityRepository.subjects.get(s) == null) {
+                    EntityRepository.subjects.put(s, true);
+                    String querySubject = " MATCH(a:PAINTING{name:\\\""
+                            + w.getName().replace("à", "a'")
+                            .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                            .replace("ò", "o'").replace("é", "e'").replace("É", "E")
+                            + "\\\"})"
+                            + " CREATE (n:SUBJECT{name:\\\""
+                            + s.replace("\"", "").replace("à", "a'")
+                            .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                            .replace("ò", "o'").replace("é", "e'").replace("É", "E").replace("ì", "i'")
+                            .replace("í", "i").replace("«", "").replace("»", "").replace("”", "").replace("È", "E'")
+                            .replace("“", "").replace("(", "").replace(")", "").replace("’", "'").replace("–", "-")
+                            .replace("Categoria:", "").replace("http://it.dbpedia.org/resource/", "").replace("_", " ")
+                            .replace("ö", "o").replace("ü", "u")
+                            + "\\\"})"
+                            + " CREATE (n)-[:IS_SUBJECT_OF]->(a)";
+                    System.out.println(querySubject);
+                    String resS = executePost(querySubject);
+                    System.out.println(resS);
+                } else {
+
+                    String querySubject = "MATCH (n:SUBJECT{name:\\\""
+                            + s.replace("\"", "").replace("à", "a'")
+                            .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                            .replace("ò", "o'").replace("é", "e'").replace("É", "E").replace("ì", "i'")
+                            .replace("í", "i").replace("«", "").replace("»", "").replace("”", "").replace("È", "E'")
+                            .replace("“", "").replace("(", "").replace(")", "").replace("’", "'").replace("–", "-")
+                            .replace("Categoria:", "").replace("http://it.dbpedia.org/resource/", "").replace("_", " ")
+                            + "\\\"}) MATCH(a:PAINTING{name:\\\""
+                            + w.getName().replace("à", "a'")
+                            .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                            .replace("ò", "o'").replace("é", "e'").replace("É", "E")
+                            + "\\\"}) CREATE (n)-[:IS_SUBJECT_OF]->(a)";
+                    System.out.println(querySubject);
+                    String resS = executePost(querySubject);
+                    System.out.println(resS);
+
+                }
+            }
+        } else if (n.getNodeName()
+                .equals("style") || n.getNodeName().equals("iconography") || n.getNodeName().equals("author")) {
             String query = "CREATE (n:ABSTRACT{id:'" + id + "', type:\\\"" + n.getNodeName() + "\\\"})";
             String res = executePost(query);
             System.out.println(res);
             inserted = true;
-        } else if (n.getNodeName().equals("node")) {
+        } else if (n.getNodeName()
+                .equals("node")) {
             String sml = n.getFirstChild().getTextContent().replace("<prosody rate= \"0.9\" pitch= \"+60%\">", "").replace("</prosody>", "").replace("\n", "")
                     .replace("\"", "").replace("à", "a'").replace("ì", "i'")
                     .replace("è", "e").replace("ù", "u").replace("á", "a'")
@@ -220,7 +490,9 @@ public class Neo4jQueryExecutor {
             inserted = true;
         }
 
-        for (int i = 0; i < childs.getLength(); i++) {
+        for (int i = 0;
+                i < childs.getLength();
+                i++) {
             Node child = childs.item(i);
             if (inserted) {
                 int childId = createNode(child, tempId);
@@ -232,23 +504,27 @@ public class Neo4jQueryExecutor {
             }
         }
 
-        if (inserted && parentId > 0) {
+        if (inserted && parentId
+                > 0) {
             String query = "MATCH (a{id:'" + tempId + "'}),(b{id:'" + parentId + "'})"
-                    + "CREATE (a)-[:BELONGS]->(b)";
+                    + "CREATE (a)-[:BELONGS_TO]->(b)";
             String res = executePost(query);
             System.out.println(res);
         }
 
-        for (int i = 0; i < childsId.size(); i++) {
+        for (int i = 0;
+                i < childsId.size();
+                i++) {
             if (i + 1 < childsId.size()) {
                 String query = "MATCH (a{id:'" + childsId.get(i) + "'}),(b{id:'" + childsId.get(i + 1) + "'})"
-                        + "CREATE (a)-[:SHARE_TOPIC]->(b)";
+                        + "CREATE (a)-[:SHARE_TOPIC_WITH]->(b)";
                 String res = executePost(query);
                 System.out.println(res);
             }
         }
 
-        if (n.getNodeName().equals("node")) {
+        if (n.getNodeName()
+                .equals("node")) {
             return tempId;
         }
 
