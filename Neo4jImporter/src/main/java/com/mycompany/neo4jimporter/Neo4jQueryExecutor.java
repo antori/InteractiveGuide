@@ -81,8 +81,8 @@ public class Neo4jQueryExecutor {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder;
         try {
-            String res = executePost("MATCH (n) DETACH DELETE n");
-            System.out.println(res);
+            /*String res = executePost("MATCH (n) DETACH DELETE n");
+            System.out.println(res);*/
             builder = factory.newDocumentBuilder();
             Document doc = builder.parse(new File(fileName));
             Node root = doc.getFirstChild();
