@@ -26,6 +26,7 @@ public class AuthorEntity {
     public static final String EPOQUE_FIELD = "http://it.dbpedia.org/property/epoca";
     public static final String SUBJECT_FIELD = "http://purl.org/dc/terms/subject";
     public static final String DESCRIPTION_FIELD = "http://dbpedia.org/ontology/abstract";
+    public static final String REDIRECT_FIELD = "http://dbpedia.org/ontology/wikiPageRedirects";
     
     private String label;
     private String name;

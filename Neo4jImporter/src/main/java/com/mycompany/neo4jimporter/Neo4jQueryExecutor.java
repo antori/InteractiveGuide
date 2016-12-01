@@ -81,8 +81,8 @@ public class Neo4jQueryExecutor {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder;
         try {
-            /*String res = executePost("MATCH (n) DETACH DELETE n");
-            System.out.println(res);*/
+            String res = executePost("MATCH (n) DETACH DELETE n");
+            System.out.println(res);
             builder = factory.newDocumentBuilder();
             Document doc = builder.parse(new File(fileName));
             Node root = doc.getFirstChild();
@@ -128,7 +128,7 @@ public class Neo4jQueryExecutor {
 
                 String birthy = (a.getBirthyear() == null) ? "null" : a.getBirthyear();
                 String deathy = (a.getDeathyear() == null) ? "null" : a.getDeathyear();
-                String desc = (a.getDescription() == null) ? "null" : a.getDescription();
+                String desc = a.getDescription();
                 String nat = (a.getNationality() == null) ? "null" : a.getNationality();
                 String gender = (a.getGender() == null) ? "null" : a.getGender();
 
@@ -149,17 +149,22 @@ public class Neo4jQueryExecutor {
                         + "gender:\\\"" + gender.replace("à", "a'")
                         .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
                         .replace("ò", "o'").replace("é", "e'").replace("É", "E")
-                        + "\\\","
-                        + "description:\\\"" + desc.replace("\"", "").replace("à", "a'")
-                        .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
-                        .replace("ò", "o'").replace("é", "e'").replace("É", "E").replace("ì", "i'")
-                        .replace("í", "i").replace("«", "").replace("»", "").replace("”", "").replace("È", "E'")
-                        .replace("“", "").replace("(", "").replace(")", "").replace("’", "'").replace("–", "-")
-                        + "\\\","
-                        + "nationality:\\\"" + nat.replace("à", "a'")
+                        + "\\\",";
+
+                if (desc != null) {
+                    query += "description:\\\"" + desc.replace("ç", "c").replace("\"", "").replace("à", "a'")
+                            .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
+                            .replace("ò", "o'").replace("é", "e'").replace("É", "E").replace("ì", "i'")
+                            .replace("í", "i").replace("«", "").replace("»", "").replace("”", "").replace("È", "E'")
+                            .replace("“", "").replace("(", "").replace(")", "").replace("’", "'").replace("–", "-")
+                            + "\\\",";
+                }
+
+                query += "nationality:\\\"" + nat.replace("à", "a'")
                         .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
                         .replace("ò", "o'").replace("é", "e'").replace("É", "E")
                         + "\\\"})";
+
                 System.out.println(query);
                 String res = executePost(query);
                 System.out.println(res);
@@ -207,7 +212,7 @@ public class Neo4jQueryExecutor {
                     }
                 }
 
-                if (a.getBirthplace() != null && a.getDeathplace() != null) {
+                if (a.getBirthplace() != null) {
 
                     if (EntityRepository.cities.get(a.getBirthplace().replace("à", "a'")
                             .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
@@ -251,7 +256,9 @@ public class Neo4jQueryExecutor {
                         String res1 = executePost(queryc);
                         System.out.println(res1);
                     }
+                }
 
+                if (a.getDeathplace()!= null) {
                     if (EntityRepository.cities.get(a.getDeathplace().replace("à", "a'")
                             .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
                             .replace("ò", "o'").replace("é", "e'").replace("ü", "u")

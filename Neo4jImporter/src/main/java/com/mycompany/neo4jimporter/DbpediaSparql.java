@@ -146,9 +146,22 @@ public class DbpediaSparql {
     }
 
     private AuthorEntity createAuthor(String name) {
+        
+        String checkRedirect = "SELECT ?value WHERE {\n"
+                + " <" + name + "> <"+AuthorEntity.REDIRECT_FIELD+"> ?value.\n"
+                + "}";
 
+        QueryExecution qer = QueryExecutionFactory.sparqlService(sparqlEndpoint, checkRedirect);
+        ResultSet rsr = qer.execSelect();
+        
+        String temp = name;
+
+        if(rsr!=null && rsr.hasNext()) {
+            temp = rsr.next().get("?value").asResource().toString();
+        }
+        
         authorQuery = "SELECT ?property ?value WHERE {\n"
-                + " <" + name + "> ?property ?value.\n"
+                + " <" + temp + "> ?property ?value.\n"
                 + "}";
 
         QueryExecution qe = QueryExecutionFactory.sparqlService(sparqlEndpoint, authorQuery);
