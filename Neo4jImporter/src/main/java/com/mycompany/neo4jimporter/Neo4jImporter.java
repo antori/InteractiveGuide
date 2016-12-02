@@ -13,6 +13,9 @@ import java.io.File;
  * @author Marco
  */
 public class Neo4jImporter {
+    
+    private static String path = "C:" + File.separator + "Users" + File.separator + "Marco"
+				+ File.separator + "Downloads" + File.separator + "quadri.xml";
 
     /**
      * @param args the command line arguments
@@ -21,8 +24,7 @@ public class Neo4jImporter {
         
         DbpediaSparql q = new DbpediaSparql();
         Neo4jQueryExecutor n = new Neo4jQueryExecutor();
-        n.createPaintingsDatabase("C:" + File.separator + "Users" + File.separator + "Marco"
-				+ File.separator + "Downloads" + File.separator + "quadri.xml");
+        n.createPaintingsDatabase(path);
     }
     
 }

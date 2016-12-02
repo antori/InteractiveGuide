@@ -81,8 +81,6 @@ public class Neo4jQueryExecutor {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder;
         try {
-            String res = executePost("MATCH (n) DETACH DELETE n");
-            System.out.println(res);
             builder = factory.newDocumentBuilder();
             Document doc = builder.parse(new File(fileName));
             Node root = doc.getFirstChild();
@@ -109,16 +107,21 @@ public class Neo4jQueryExecutor {
         ArrayList<Integer> childsId = new ArrayList<Integer>();
 
         if (n.getNodeName().equals("cultural_heritages")) {
+
             String query = "CREATE (n:CULTURAL_HERITAGES{id:'" + id + "',name:'paintings'})";
             String res = executePost(query);
             System.out.println(res);
             inserted = true;
+
         } else if (n.getNodeName().equals("category")) {
+
             String query = "CREATE (n:CATEGORY{id:'" + id + "', name:'" + n.getAttributes().getNamedItem("name").getNodeValue() + "'})";
             String res = executePost(query);
             System.out.println(res);
             inserted = true;
+
         } else if (n.getNodeName().equals("presentation")) {
+
             WorkEntity w = q.execQuery(n.getPreviousSibling().getPreviousSibling().getTextContent());
             AuthorEntity a = w.getAuthor();
             System.out.println(w.getName() + " " + a.getLabel());
@@ -208,10 +211,8 @@ public class Neo4jQueryExecutor {
                         System.out.println(querySubject);
                         String resS = executePost(querySubject);
                         System.out.println(resS);
-
                     }
                 }
-
                 if (a.getBirthplace() != null) {
 
                     if (EntityRepository.cities.get(a.getBirthplace().replace("à", "a'")
@@ -257,8 +258,8 @@ public class Neo4jQueryExecutor {
                         System.out.println(res1);
                     }
                 }
+                if (a.getDeathplace() != null) {
 
-                if (a.getDeathplace()!= null) {
                     if (EntityRepository.cities.get(a.getDeathplace().replace("à", "a'")
                             .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
                             .replace("ò", "o'").replace("é", "e'").replace("ü", "u")
@@ -286,6 +287,7 @@ public class Neo4jQueryExecutor {
                         String res1 = executePost(queryc);
                         System.out.println(res1);
                     } else {
+
                         String queryc = " MATCH(a:PERSON{name:\\\""
                                 + a.getLabel().replace("à", "a'")
                                 .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
@@ -303,9 +305,9 @@ public class Neo4jQueryExecutor {
                     }
                 }
             }
-
             boolean city = false;
             String c = "";
+
             if (EntityRepository.cities.get(w.getCity().replace("à", "a'")
                     .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
                     .replace("ò", "o'").replace("é", "e'").replace("ü", "u")
@@ -330,22 +332,22 @@ public class Neo4jQueryExecutor {
                 System.out.println(res);
                 city = true;
             }
-            boolean is = EntityRepository.locations.get(w.getLocation().replace("à", "a'")
+            boolean checkLocation = EntityRepository.locations.get(w.getLocation().replace("à", "a'")
                     .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
                     .replace("ò", "o'").replace("é", "e'").replace("ü", "u")
                     .replace("ö", "o").replace("http://it.dbpedia.org/resource/", "")
                     .replace("_", " ")) == null;
 
-            if (is || city) {
+            if (checkLocation || city) {
 
-                if (!is) {
+                if (!checkLocation) {
+
                     c = " di " + w.getCity().replace("à", "a'")
                             .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
                             .replace("ò", "o'").replace("é", "e'").replace("ü", "u")
                             .replace("ö", "o").replace("http://it.dbpedia.org/resource/", "")
                             .replace("_", " ");
                 }
-
                 EntityRepository.locations.put(w.getLocation().replace("à", "a'")
                         .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
                         .replace("ò", "o'").replace("é", "e'").replace("ü", "u")
@@ -364,17 +366,18 @@ public class Neo4jQueryExecutor {
                         .replace("ö", "o").replace("http://it.dbpedia.org/resource/", "")
                         .replace("_", " ") + c
                         + "\\\"}) CREATE (n)-[:LOCATED_IN]->(c)";
+
                 System.out.println(query);
                 String res = executePost(query);
                 System.out.println(res);
-
             }
-
             System.out.println(w.toString());
+
             String sml = n.getFirstChild().getTextContent().replace("<prosody rate= \"0.9\" pitch= \"+60%\">", "").replace("</prosody>", "").replace("\n", "")
                     .replace("\"", "").replace("à", "a'")
                     .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
                     .replace("ò", "o'").replace("é", "e'").toLowerCase();
+
             String query = "MATCH(l:LOCATION{name:\\\"" + w.getLocation().replace("à", "a'")
                     .replace("è", "e'").replace("ù", "u'").replace("á", "a'")
                     .replace("ò", "o'").replace("é", "e'").replace("ü", "u")
@@ -412,15 +415,18 @@ public class Neo4jQueryExecutor {
                     .replace("ò", "o'").replace("é", "e'").replace("http://it.dbpedia.org/resource/", "")
                     .replace("_", " ").replace("@it'", "")
                     + "\\\", sml:\\\"" + sml + "\\\"}) CREATE (a)-[:PAINTED]->(n)-[:HOSTED_IN]->(l)";
+
             System.out.println(query);
             String res = executePost(query);
             System.out.println(res);
             inserted = true;
 
             ArrayList<String> subjects = w.getSubjects();
+
             for (String s : subjects) {
 
                 if (EntityRepository.subjects.get(s) == null) {
+
                     EntityRepository.subjects.put(s, true);
                     String querySubject = " MATCH(a:PAINTING{name:\\\""
                             + w.getName().replace("à", "a'")
@@ -457,72 +463,82 @@ public class Neo4jQueryExecutor {
                     System.out.println(querySubject);
                     String resS = executePost(querySubject);
                     System.out.println(resS);
-
                 }
             }
         } else if (n.getNodeName()
                 .equals("style") || n.getNodeName().equals("iconography") || n.getNodeName().equals("author")) {
+
             String query = "CREATE (n:ABSTRACT{id:'" + id + "', type:\\\"" + n.getNodeName() + "\\\"})";
             String res = executePost(query);
             System.out.println(res);
             inserted = true;
         } else if (n.getNodeName()
                 .equals("node")) {
+
             String sml = n.getFirstChild().getTextContent().replace("<prosody rate= \"0.9\" pitch= \"+60%\">", "").replace("</prosody>", "").replace("\n", "")
                     .replace("\"", "").replace("à", "a'").replace("ì", "i'")
                     .replace("è", "e").replace("ù", "u").replace("á", "a'")
                     .replace("ò", "o'").replace("é", "e'").toLowerCase();
             String query = "CREATE (n:INFO{id:'" + id + "', name:'";
             if (n.getAttributes().getNamedItem("id") != null) {
+
                 query += n.getAttributes().getNamedItem("id").getNodeValue();
             }
             if (n.getAttributes().getNamedItem("media") != null) {
+
                 query += "', media:'" + n.getAttributes().getNamedItem("media").getNodeValue();
             }
             if (n.getAttributes().getNamedItem("xf") != null) {
+
                 query += "',xf:'" + n.getAttributes().getNamedItem("xf").getNodeValue();
             }
             if (n.getAttributes().getNamedItem("xi") != null) {
+
                 query += "',xi:'" + n.getAttributes().getNamedItem("xi").getNodeValue();
             }
             if (n.getAttributes().getNamedItem("yf") != null) {
+
                 query += "',yf:'" + n.getAttributes().getNamedItem("yf").getNodeValue();
             }
             if (n.getAttributes().getNamedItem("yi") != null) {
+
                 query += "',yi:'" + n.getAttributes().getNamedItem("yi").getNodeValue();
             }
+
             query += "', sml:\\\"" + sml + "\\\"})";
+
             String res = executePost(query);
             System.out.println(res);
             inserted = true;
         }
+        for (int i = 0; i < childs.getLength(); i++) {
 
-        for (int i = 0;
-                i < childs.getLength();
-                i++) {
             Node child = childs.item(i);
             if (inserted) {
+
                 int childId = createNode(child, tempId);
                 if (childId > 0) {
+
                     childsId.add(childId);
                 }
             } else {
+
                 createNode(child, parentId);
             }
         }
 
-        if (inserted && parentId
-                > 0) {
+        if (inserted && parentId > 0) {
+
             String query = "MATCH (a{id:'" + tempId + "'}),(b{id:'" + parentId + "'})"
                     + "CREATE (a)-[:BELONGS_TO]->(b)";
             String res = executePost(query);
             System.out.println(res);
         }
 
-        for (int i = 0;
-                i < childsId.size();
-                i++) {
+        for (int i = 0; i < childsId.size(); i++) {
+
             if (i + 1 < childsId.size()) {
+
                 String query = "MATCH (a{id:'" + childsId.get(i) + "'}),(b{id:'" + childsId.get(i + 1) + "'})"
                         + "CREATE (a)-[:SHARE_TOPIC_WITH]->(b)";
                 String res = executePost(query);
@@ -530,12 +546,10 @@ public class Neo4jQueryExecutor {
             }
         }
 
-        if (n.getNodeName()
-                .equals("node")) {
+        if (n.getNodeName().equals("node")) {
+
             return tempId;
         }
-
         return -1;
     }
-
 }
